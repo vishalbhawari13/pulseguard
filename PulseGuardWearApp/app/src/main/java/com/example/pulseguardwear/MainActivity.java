@@ -12,15 +12,16 @@ import androidx.activity.result.contract.ActivityResultContracts;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.data.DataPoint;
-import com.google.android.gms.fitness.data.DataReadRequest;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Field;
-import com.google.android.gms.fitness.result.DataReadResponse;
+import com.google.android.gms.fitness.data.DataType;
+import com.google.android.gms.fitness.request.DataReadRequest;
+import com.google.android.gms.tasks.Task;
 
 import java.util.concurrent.TimeUnit;
 
@@ -36,12 +37,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Configure Google Sign-In for Fit API
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestScopes(new com.google.android.gms.common.api.Scope("https://www.googleapis.com/auth/fitness.activity.read"))
-                .requestScopes(new com.google.android.gms.common.api.Scope("https://www.googleapis.com/auth/fitness.body.read"))
-                .build();
-
-        googleSignInClient = GoogleSignIn.getClient(this, gso);
+        configureGoogleSignIn();
 
         // Handle sign-in activity result
         resultLauncher = registerForActivityResult(
@@ -55,8 +51,28 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        // Launch the sign-in process
-        resultLauncher.launch(googleSignInClient.getSignInIntent());
+        // Launch the sign-in process if the user is not already signed in
+        if (GoogleSignIn.getLastSignedInAccount(this) == null) {
+            resultLauncher.launch(googleSignInClient.getSignInIntent());
+        } else {
+            Toast.makeText(this, "Already signed in", Toast.LENGTH_SHORT).show();
+            GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+            if (account != null) {
+                accessGoogleFitData(account);
+            }
+        }
+    }
+
+    /**
+     * Configure Google Sign-In options for accessing Fit API data.
+     */
+    private void configureGoogleSignIn() {
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestScopes(new com.google.android.gms.common.api.Scope("https://www.googleapis.com/auth/fitness.activity.read"))
+                .requestScopes(new com.google.android.gms.common.api.Scope("https://www.googleapis.com/auth/fitness.body.read"))
+                .build();
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso);
     }
 
     /**
