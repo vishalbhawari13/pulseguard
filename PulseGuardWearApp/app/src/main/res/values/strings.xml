@@ -1,3 +1,7 @@
 <resources>
+    <!-- Application Name -->
     <string name="app_name">PulseGuardWearApp</string>
+
+    <!-- OAuth Client ID -->
+    <string name="server_client_id">575322634685-hnjpqdva9damda5ft14bcp6ni65sdutt.apps.googleusercontent.com</string>
 </resources>
